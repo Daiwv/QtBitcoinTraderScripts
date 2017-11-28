@@ -17,17 +17,17 @@ Frans Schreuder
 
 # How it works
 
-             -----   ~~~This value will be remembered as SellCeiling
-           /       \ 
-          /         \
-         /           \ ~~~ At PercentageTop (1.5%) below SellCeiling, it sells all.
-     ---              \
-   /                    ----
-  /                          \
-                              \
-                               \       / ~~ At PercentageBot (0.75%) above BuyFloor, it buys all.
-                                \     /
-                                 ----- ~~~ This value will be remembered as BuyFloor
+               -----   ~~~Store this value as SellCeiling
+             /       \ 
+            /         \
+           /           \ ~~~ Sell at PercentageTop (1.5%) below SellCeiling.
+       ---              \
+     /                    ----
+    /                          \
+                               \
+                                \       / ~~ Buy at PercentageBot (0.75%) above BuFloor
+                                 \     /
+                                  ----- ~~~ Store this value as BuyFloor
 
 # How to setup
 
