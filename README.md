@@ -6,8 +6,10 @@ If you made profit using this script, please send me some Bitcoins, Litecoins or
 
 Bitcoin:
 3DmSBjaNptXp5dPNiPejzC6Un8HkWdWnxW
+
 LiteCoin:
 MD1N2f4fDaYdLACZRMwTomQwbuLe11Mx6h
+
 Ethereum:
 0xd7d06a9c025797153959f988833c40e8a28ac23a
 
@@ -15,17 +17,17 @@ Frans Schreuder
 
 # How it works
 
-           -----   ~~~This value will be remembered as SellCeiling
-         /       \ 
-        /         \
-       /           \ ~~~ At PercentageTop (1.5%) below SellCeiling, it sells all.
-   ---              \
- /                    ----
-/                          \
-                            \
-                             \       / ~~ At PercentageBot (0.75%) above BuyFloor, it buys all.
-                              \     /
-                               ----- ~~~ This value will be remembered as BuyFloor
+             -----   ~~~This value will be remembered as SellCeiling
+           /       \ 
+          /         \
+         /           \ ~~~ At PercentageTop (1.5%) below SellCeiling, it sells all.
+     ---              \
+   /                    ----
+  /                          \
+                              \
+                               \       / ~~ At PercentageBot (0.75%) above BuyFloor, it buys all.
+                                \     /
+                                 ----- ~~~ This value will be remembered as BuyFloor
 
 # How to setup
 
