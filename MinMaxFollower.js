@@ -16,72 +16,103 @@ var BuyFloor=1e99;
 var SellCeiling=0;
 
 
-trader.fileAppend(fileLoggerFile,  "Starting MinMaxFollower - " + trader.dateTimeString());
+log("Starting MinMaxFollower, please donate bitcoins to:");
+log("3DmSBjaNptXp5dPNiPejzC6Un8HkWdWnxW");
 
 
 trader.on("AskPrice").changed()
 {
     if(symbol != "BTCEUR")return;
+    if(trader.get("ApiLag")>10)
+    {
+        log("Api lag is to high");
+        return;
+    }
+
     var balanceBTC = trader.get("Balance","BTC");
-    var price = trader.get("AskPrice");
-    if((balanceBTC*price)<MinimalTradeValue)
+    var AskPrice = trader.get("AskPrice");
+    var openAsks = trader.get("OpenAsksCount");
+    if(openAsks > 0) //If price changes while asks are open, keep following the ask price until order is executed.
+    {
+        log("Askprice changed to "+AskPrice+", cancel asks and sell again");
+        trader.cancelAsks("BTCEUR");
+        SellCeiling = trader.get("BTCEUR" , "AskPrice") * (1+(PercentageTop/100));
+        return;
+    }
+    if((balanceBTC*AskPrice)<MinimalTradeValue)
     {
         SellCeiling = 0;
-        ///TODO: Check if any sell orders are open, if AskPrice is below our price by TBD %, lower the price.
          return; //not enough balance
-
     }
     var p = 1 - (1*(PercentageTop/100));
-    if(price < (SellCeiling *p))
+    if(AskPrice < (SellCeiling *p))
     {
         var amount = balanceBTC;
-        amount = amount - amount*(FEE/100);
-        trader.log("Selling: ",SellCeiling*p," for: ",amount);
-        trader.fileAppend(fileLoggerFile, "Selling: "+(SellCeiling*p)+" for: "+amount+ " - " + trader.dateTimeString());
-        trader.sell("BTCEUR", amount, SellCeiling*p);
+        amount *= (1.0 - trader.get("Fee") / 100.0);
+        var SellPrice = (SellCeiling*p);
+        log("Selling amount BTC"+amount+", amount EUR"+(amount*SellPrice)+", Price"+SellPrice);
+        trader.sell("BTCEUR", amount, SellPrice);
         SellCeiling = 0;
+        return;
     }
-    else if (price>SellCeiling)
+    else if (AskPrice>SellCeiling)
     {
-        SellCeiling = price;
-        trader.log("Set new SellCeiling: EUR", SellCeiling);
-        trader.fileAppend(fileLoggerFile, "Set new SellCeiling: EUR"+ SellCeiling+ " - " + trader.dateTimeString());
+        SellCeiling = AskPrice;
+        log("Set new SellCeiling: EUR"+ SellCeiling);
+        return;
     }
-    trader.log("Below SellCeiling: ", 100*((price-SellCeiling)/SellCeiling),"%, sell at:", -1*PercentageTop, "%");
-    trader.fileAppend(fileLoggerFile, "Below SellCeiling: "+ (100*((price-SellCeiling)/SellCeiling))+"%, sell at:"+ (-1*PercentageTop)+ "% - " + trader.dateTimeString());
+    log("Below SellCeiling: "+ (100*((AskPrice-SellCeiling)/SellCeiling))+"%, sell at:"+ (-1*PercentageTop) + "%");
 }
 
 
 trader.on("BidPrice").changed()
 {
     if(symbol != "BTCEUR")return;
+    if(trader.get("ApiLag")>10)
+    {
+        log("Api lag is to high");
+        return;
+    }
+
     var balanceEUR = trader.get("Balance","EUR");
-    var price = trader.get("BidPrice");
+    var BidPrice = trader.get("BidPrice");
+    var openBids = trader.get("OpenBidsCount");
+    if(openBids > 0) //If price changes while bids are open, keep following the bid price until order is executed.
+    {
+        log("Bidprice changed to "+BidPrice+", cancel bids and buy again");
+        trader.cancelBids("BTCEUR");
+        BuyFloor = trader.get("BTCEUR" , "BidPrice") * (1-(PercentageBot/100));
+        return;
+    }
     if((balanceEUR)<MinimalTradeValue)
     {
         BuyFloor = 1e99;
-        ///TODO: Check if any buy orders are open, if BidPrice is above our price by TBD %, raise the price.
-         return; //not enough balance
-
+        return; //not enough balance
     }
     var p = 1 + 1*(PercentageBot/100);
-    if(price > (BuyFloor*p))
+    if(BidPrice > (BuyFloor*p))
     {
-        var amount = balanceEUR/BuyFloor;
-        amount -= amount * (FEE/100);
-        trader.log("Buying: ",BuyFloor*p," for: ",amount);
-        trader.fileAppend(fileLoggerFile, "Buying: "+(BuyFloor*p)+" for: "+amount+ " - " + trader.dateTimeString());
-        trader.buy("BTCEUR", amount, (BuyFloor*p));
+        var amount = balanceEUR;
+        amount *= (1.0 - trader.get("Fee") / 100.0);
+        var BuyPrice = (BuyFloor*p);
+        log("Buying amount BTC"+(amount/BuyPrice)+", amount EUR"+amount+", Price"+BuyPrice);
+        trader.buy("BTCEUR", amount/BuyPrice, BuyPrice);
         BuyFloor = 1e99;
+        return;
     }
-    else if (price<BuyFloor)
+    else if (BidPrice<BuyFloor)
     {
-        BuyFloor = price;
-        trader.log("Set new BuyFloor: EUR", BuyFloor);
-        trader.fileAppend(fileLoggerFile, "Set new BuyFloor: EUR" + BuyFloor + " - " + trader.dateTimeString());
+        BuyFloor = BidPrice;
+        log("Set new BuyFloor: EUR" + BuyFloor);
+        return;
     }
-    trader.log("Above BuyFloor: ", 100*((price-BuyFloor)/BuyFloor),"%, buy at:", PercentageBot, "%");
-    trader.fileAppend(fileLoggerFile, "Above BuyFloor: " + (100*((price-BuyFloor)/BuyFloor)) +"%, buy at:"+ PercentageBot+ "% - " + trader.dateTimeString());
+    log("Above BuyFloor: " + (100*((BidPrice-BuyFloor)/BuyFloor)) +"%, buy at:"+ PercentageBot+ "%");
 }
 
+
+function log(str)
+{
+    trader.log(str);
+    trader.fileAppend(fileLoggerFile, trader.dateTimeString() + " - " + str);
+}
 

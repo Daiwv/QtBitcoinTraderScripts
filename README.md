@@ -23,9 +23,9 @@ Frans Schreuder
            /           \ ~~~ Sell at PercentageTop (1.5%) below SellCeiling.
        ---              \
      /                    ----
-    /                          \
+    /                         \
                                \
-                                \       / ~~ Buy at PercentageBot (0.75%) above BuFloor
+                                \       / ~~ Buy at PercentageBot (0.75%) above BuyFloor
                                  \     /
                                   ----- ~~~ Store this value as BuyFloor
 
