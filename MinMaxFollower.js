@@ -14,17 +14,15 @@
 //When you have enough bitcoins, this script will follow the Ask price when it goes up. 
 //When it drops below the ceiling by PercentageTop<Win or Loss>%, the script will sell all bitcoins.
 //When we are making profit, and the price drops below this percentage, we sell
-var PercentageTopWin = 0.75;
+var PercentageTopWin = 1.0;
 //When we are making loss, and the price drops below this percentage, we sell
-var PercentageTopLoss = 5.0;
+var PercentageTopLoss = 25.0;
 //When you have enough Euros, the script will follow the Bid price when it goes down.
 //When it rises above the floor by PercentageBot%, the script will buy bitcoins for your EUR balance
 //When we are making profit and the price raises above this percentage, we buy
-var PercentageBotWin = 0.75;
+var PercentageBotWin = 1.0;
 //When we are making loss and the price raises above this percentage, we buy
-var PercentageBotLoss = 2.5;
-//Set this value to the trading fee in %
-var FEE=0.25;
+var PercentageBotLoss = 25.0;
 //Set this path to the log file to log prices and 
 var fileLoggerFile = "/home/franss/CernBox/programmeren/MinMaxFollower.log";
 //Set this to the minimum saldo that a trade can be executed (in Euro)
@@ -59,7 +57,8 @@ trader.on("AskPrice").changed()
     if((AskPrice * (1.0 - trader.get("Fee") / 100.0)) > LastBuyPrice) //Check if we are winning
     {
         PercentageTop = PercentageTopWin;
-        log("Making profit: EUR"+round2(((AskPrice * (1.0 - trader.get("Fee") / 100.0)) - LastBuyPrice)*balanceBTC)+", Ask-FEE: "+round2(AskPrice * (1.0 - trader.get("Fee") / 100.0))+", Last Buy: "+round2(LastBuyPrice));
+        if((balanceBTC*AskPrice)>=MinimalTradeValue)
+            log("Making profit: EUR"+round2(((AskPrice * (1.0 - trader.get("Fee") / 100.0)) - LastBuyPrice)*balanceBTC)+", Ask-FEE: "+round2(AskPrice * (1.0 - trader.get("Fee") / 100.0))+", Last Buy: "+round2(LastBuyPrice));
     }
     
     
@@ -115,6 +114,8 @@ trader.on("BidPrice").changed()
     if((BidPrice * (1.0 + trader.get("Fee") / 100.0)) < LastSellPrice) //Check if we are winning
     {
         PercentageBot = PercentageBotWin;
+        if((balanceEUR)>=MinimalTradeValue)
+            log("Making profit: EUR"+round2(((BidPrice * (1.0 + trader.get("Fee") / 100.0)) - LastSellPrice)*(balanceEUR/BidPrice))+", Bid+FEE: "+round2(BidPrice * (1.0 + trader.get("Fee") / 100.0))+", Last Buy: "+round2(LastBuyPrice));
     }
     
     if(openBids > 0) //If price changes while bids are open, keep following the bid price until order is executed.
